@@ -110,7 +110,7 @@ module tb_rom;
     reg [9:0] address;
     wire [7:0] dout;
 
-    rom uut (
+    rom dut (
         .clk(clk),
         .rst(rst),
         .address(address),
