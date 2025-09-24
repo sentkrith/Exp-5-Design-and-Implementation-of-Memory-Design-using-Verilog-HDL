@@ -21,20 +21,130 @@ Capture screenshots of the waveform and save the simulation logs. These will be 
 
 # Code
 # RAM
-// Verilog code
+**1.RTL CODE**
+```
+module mem_1kb(input clk,rst,en,input[7:0]datain,input[9:0]address,output reg[7:0]dataout);
+reg [7:0]mem_1kb[1023:0];
+always@(posedge clk)
+begin
+    if(rst)
+        dataout<=8'b0;
+    else if(en)
+        mem_1kb[address]<=datain;
+    else
+        dataout<=mem_1kb[address];
+end
+endmodule
+```
+**2.TESTBENCH CODE**
+```
+module mem_1kb_tb;
+reg clk_t,rst_t,en_t;
+reg[7:0]datain_t;
+reg[9:0]address_t;
+wire[7:0]dataout_t;
 
-// Test bench
+mem_1kb dut(.clk(ck_t),.rst(rst_t),.en(en_t),.datain(datain_t),.address(address_t),.dataout(dataout_t));
 
-// output Waveform
+initial
+    begin
+        clk_t  = 1'b0;
+        rst_t = 1'b1;
+    #100
+        rst_t = 1'b0;
+        en_t = 1'b1;
+        address_t = 10'd985;
+        datain_t = 8'd55;
+     #100
+        address_t = 10'd1000;
+        datain_t = 8'd125;
+     #100
+        en_t = 1'b0;
+        address_t = 10'd985;
+     #100
+        address_t = 10'd1000;
+     end
+     always
+     #10 clk_t = ~clk_t;
+ 
+        
+endmodule
+```
+**3.OUTPUT WAVEFORM**
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7cbb06c5-aaf7-4c3d-beb8-4cef12d34908" />
+
 
 # ROM
- // write verilog code for ROM using $random
- 
- // Test bench
+**1.RTL CODE**
+```
+module rom(
+    input clk, rst,
+    input [9:0] address,
+    output reg [7:0] dout
+);
 
-// output Waveform
+    reg [7:0] rom[1023:0];
 
- # FIFO
+    initial
+    begin
+        rom[10'd100] = 8'd42;
+        rom[10'd255] = 8'd150;
+        rom[10'd520] = 8'd200;
+        rom[10'd999] = 8'd255;
+    end
+
+    always@(posedge clk)
+    begin
+        if(rst)
+            dout <= 8'b0;
+        else
+            dout <= rom[address];
+    end
+endmodule
+
+```
+**2.TEST BENCH CODE**
+```
+module tb_rom;
+    reg clk, rst;
+    reg [9:0] address;
+    wire [7:0] dout;
+
+    rom uut (
+        .clk(clk),
+        .rst(rst),
+        .address(address),
+        .dout(dout)
+    );
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        rst = 1;
+        address = 10'd0;
+        #12;
+        rst = 0;
+
+        // Test addresses in ROM
+        #10 address = 10'd100;
+        #10 address = 10'd255;
+        #10 address = 10'd520;
+        #10 address = 10'd999;
+        #10 address = 10'd1023;
+        #20;
+        $finish;
+    end
+
+    
+endmodule
+```
+**3.OUTPUT WAVEFORM**
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7c677176-ed60-40b5-8d34-80c893732637" />
+
+# FIFO
  // write verilog code for FIFO
  
  // Test bench
