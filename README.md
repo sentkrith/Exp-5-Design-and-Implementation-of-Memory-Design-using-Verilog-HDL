@@ -145,11 +145,86 @@ endmodule
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7c677176-ed60-40b5-8d34-80c893732637" />
 
 # FIFO
- // write verilog code for FIFO
- 
- // Test bench
+**1.RTL CODE**
+```
+module syn_fifo #(parameter DEPTH=8, DATA_WIDTH=8)(
+   input clk, rst_n,
+   input w_en, r_en,
+   input [DATA_WIDTH-1:0] data_in,
+   output reg [DATA_WIDTH-1:0] data_out,
+   output full, empty
+);
+   reg [$clog2(DEPTH)-1:0] w_ptr, r_ptr;
+   reg [DATA_WIDTH-1:0] fifo [0:DEPTH-1];
 
-// output Waveform
+   always @(posedge clk) begin
+       if (!rst_n) begin
+           w_ptr <= 0;
+           r_ptr <= 0;
+           data_out <= 0;
+       end
+   end
+
+   always @(posedge clk) begin
+       if (w_en & !full) begin
+           fifo[w_ptr] <= data_in;
+           w_ptr <= w_ptr + 1'b1;
+       end
+   end
+
+   always @(posedge clk) begin
+       if (r_en & !empty) begin
+           data_out <= fifo[r_ptr];
+           r_ptr <= r_ptr + 1'b1;
+       end
+   end
+
+   assign full  = ((w_ptr + 1'b1) == r_ptr);
+   assign empty = (w_ptr == r_ptr);
+
+endmodule
+```
+ 
+**2.TESTBENCH CODE**
+```
+module syn_fifo_tb;
+
+    reg clk, rst_n;
+    reg w_en, r_en;
+    reg [7:0] data_in;
+    wire [7:0] data_out;
+    wire full, empty;
+
+    syn_fifo #(8,8) dut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .w_en(w_en),
+        .r_en(r_en),
+        .data_in(data_in),
+        .data_out(data_out),
+        .full(full),
+        .empty(empty)
+    );
+
+    initial clk = 0;
+    always #10 clk = ~clk;
+
+    initial begin
+        rst_n = 0; w_en = 0; r_en = 0; data_in = 0;
+        #25 rst_n = 1;
+        @(posedge clk); w_en = 1; data_in = 8'd50;
+        @(posedge clk); data_in = 8'd44;
+        @(posedge clk); data_in = 8'd45;
+        @(posedge clk); w_en = 0;
+        @(posedge clk); r_en = 1;
+        #50 $finish;
+    end
+
+endmodule
+```
+ 
+**3.OUTPUT WAVEFORM**
+<img width="1899" height="1066" alt="image" src="https://github.com/user-attachments/assets/21e1b070-4886-4d66-94b7-7cf50f2e9bf9" />
 
 
 
